@@ -7,7 +7,7 @@ import api from './api'
  * API: GET /products
  * params gồm:
  *  - keyword: từ khóa tìm kiếm theo tên
- *  - categoryIds: mảng id của category cần lọc
+ *  - categoryId: id của category cần lọc (rỗng = tất cả)
  *  - sort: 'name_asc' | 'name_desc' | 'price_asc' | 'price_desc'
  *  - page: trang hiện tại
  *  - limit: số sản phẩm mỗi trang
@@ -31,7 +31,7 @@ export const getProductDetail = async (id) => {
 }
 
 /**
- * [BÀI TẬP] Lấy danh sách category (dùng để render checkbox filter)
+ * [BÀI TẬP] Lấy danh sách category (dùng để render radio filter)
  *
  * API: GET /categories
  * Kết quả cần trả về: mảng category [{ id, name }, ...]

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Input, Checkbox, Select, Button, Row, Col, Card, Empty } from 'antd'
+import { Input, Radio, Select, Button, Row, Col, Card, Empty } from 'antd'
 
 import { getProductList, getCategoryList } from '../../services/productService'
 import { MOCK_PRODUCTS, MOCK_CATEGORIES } from '../../constants/mockData'
@@ -25,11 +25,11 @@ function ProductList() {
 
   // Các state điều khiển việc search / filter / sort / phân trang
   const [keyword, setKeyword] = useState('')
-  const [categoryIds, setCategoryIds] = useState([])
+  const [categoryId, setCategoryId] = useState('')
   const [sort, setSort] = useState('')
   const [page, setPage] = useState(1)
 
-  // Lấy danh sách category để render checkbox filter
+  // Lấy danh sách category để render radio filter
   useEffect(() => {
     const fetchCategories = async () => {
       const data = await getCategoryList()
@@ -43,7 +43,7 @@ function ProductList() {
     const fetchProducts = async () => {
       const result = await getProductList({
         keyword,
-        categoryIds,
+        categoryId,
         sort,
         page,
         limit: PAGE_SIZE,
@@ -59,15 +59,15 @@ function ProductList() {
       }
     }
     fetchProducts()
-  }, [keyword, categoryIds, sort, page])
+  }, [keyword, categoryId, sort, page])
 
   const handleSearch = (value) => {
     setKeyword(value)
     setPage(1)
   }
 
-  const handleChangeCategories = (values) => {
-    setCategoryIds(values)
+  const handleChangeCategory = (e) => {
+    setCategoryId(e.target.value)
     setPage(1)
   }
 
@@ -86,13 +86,16 @@ function ProductList() {
       <Col span={6}>
         <S.FilterBox>
           <S.FilterTitle>Danh mục</S.FilterTitle>
-          <Checkbox.Group
-            value={categoryIds}
-            onChange={handleChangeCategories}
-            options={categories.map((category) => ({
-              label: category.name,
-              value: category.id,
-            }))}
+          <Radio.Group
+            value={categoryId}
+            onChange={handleChangeCategory}
+            options={[
+              { label: 'Tất cả', value: '' },
+              ...categories.map((category) => ({
+                label: category.name,
+                value: category.id,
+              })),
+            ]}
             style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
           />
         </S.FilterBox>
