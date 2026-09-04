@@ -24,7 +24,7 @@ function AdminProductList() {
 
   // Các state điều khiển việc search / filter / sort / phân trang
   const [keyword, setKeyword] = useState('')
-  const [categoryIds, setCategoryIds] = useState([])
+  const [categoryId, setCategoryId] = useState('')
   const [sort, setSort] = useState('')
   const [page, setPage] = useState(1)
 
@@ -42,7 +42,7 @@ function AdminProductList() {
     const fetchProducts = async () => {
       const result = await getProductList({
         keyword,
-        categoryIds,
+        categoryId,
         sort,
         page,
         limit: PAGE_SIZE,
@@ -52,15 +52,16 @@ function AdminProductList() {
       setTotal(result.total)
     }
     fetchProducts()
-  }, [keyword, categoryIds, sort, page])
+  }, [keyword, categoryId, sort, page])
 
   const handleSearch = (value) => {
     setKeyword(value)
     setPage(1)
   }
 
-  const handleChangeCategories = (values) => {
-    setCategoryIds(values)
+  const handleChangeCategory = (value) => {
+    // Khi bấm nút clear của Select thì value là undefined => coi như "tất cả"
+    setCategoryId(value || '')
     setPage(1)
   }
 
@@ -78,10 +79,17 @@ function AdminProductList() {
   const handleDeleteProduct = async (id) => {
     await deleteProduct(id)
     message.success('Xóa sản phẩm thành công')
-    // TODO: Khi đã có API, gọi lại getProductList để lấy danh sách mới
-    // thay vì tự xóa trên state như dưới đây
-    setProducts((prev) => prev.filter((product) => product.id !== id))
-    setTotal((prev) => prev - 1)
+    // Gọi lại API để lấy danh sách mới nhất
+    const result = await getProductList({
+      keyword,
+      categoryId,
+      sort,
+      page,
+      limit: PAGE_SIZE,
+    })
+    if (!result) return
+    setProducts(result.data)
+    setTotal(result.total)
   }
 
   const columns = [
@@ -151,10 +159,9 @@ function AdminProductList() {
             allowClear
           />
           <Select
-            mode="multiple"
             placeholder="Lọc theo danh mục"
-            value={categoryIds}
-            onChange={handleChangeCategories}
+            value={categoryId || undefined}
+            onChange={handleChangeCategory}
             options={categories.map((category) => ({
               label: category.name,
               value: category.id,
