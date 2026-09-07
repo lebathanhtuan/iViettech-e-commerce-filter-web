@@ -13,7 +13,13 @@ const initialState = {
   // Danh sách sản phẩm (dùng chung cho trang user và trang admin)
   productList: {
     data: [],
-    total: 0,
+    // meta: thông tin phân trang do API trả về
+    meta: {
+      page: 1,
+      limit: 0,
+      total: 0,
+      totalPages: 0,
+    },
     loading: false,
     error: null,
   },
@@ -48,9 +54,9 @@ const productSlice = createSlice({
       state.productList.error = null
     })
     builder.addCase(getProductListThunk.fulfilled, (state, action) => {
-      const { data, total, more } = action.payload
+      const { data, meta, more } = action.payload
       state.productList.loading = false
-      state.productList.total = total
+      state.productList.meta = meta
       // more = true (bấm "Xem thêm"): nối tiếp vào danh sách cũ, ngược lại thay mới
       state.productList.data = more ? [...state.productList.data, ...data] : data
     })
@@ -82,7 +88,7 @@ const productSlice = createSlice({
     builder.addCase(getAdminProductListThunk.fulfilled, (state, action) => {
       state.productList.loading = false
       state.productList.data = action.payload.data
-      state.productList.total = action.payload.total
+      state.productList.meta = action.payload.meta
     })
     builder.addCase(getAdminProductListThunk.rejected, (state, action) => {
       state.productList.loading = false

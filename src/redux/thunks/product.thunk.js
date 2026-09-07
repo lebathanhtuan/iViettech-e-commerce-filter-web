@@ -51,7 +51,7 @@ export const getAdminProductListThunk = createAsyncThunk(
   }
 )
 
-// Tạo sản phẩm - data: { name, price, categoryId, image, description }
+// Tạo sản phẩm - data là FormData: name, price, categoryId, description, image (file)
 export const createProductThunk = createAsyncThunk(
   'product/createProduct',
   async (data, { rejectWithValue }) => {
@@ -64,7 +64,7 @@ export const createProductThunk = createAsyncThunk(
   }
 )
 
-// Cập nhật sản phẩm - payload: { id, data }
+// Cập nhật sản phẩm - payload: { id, data } với data là FormData giống create
 export const updateProductThunk = createAsyncThunk(
   'product/updateProduct',
   async ({ id, data }, { rejectWithValue }) => {

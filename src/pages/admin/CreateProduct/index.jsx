@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { Form, Input, InputNumber, Select, Button, Space, message } from 'antd'
+import { Form, Input, InputNumber, Select, Button, Space, Upload, message } from 'antd'
+import { UploadOutlined } from '@ant-design/icons'
 
 import { createProductThunk } from '../../../redux/thunks/product.thunk'
 import { getCategoryListThunk } from '../../../redux/thunks/category.thunk'
@@ -21,9 +22,21 @@ function CreateProduct() {
   }, [dispatch])
 
   const handleSubmit = async (values) => {
-    // values có dạng: { name, price, categoryId, image, description }
+    // values có dạng: { name, price, categoryId, description, image: [fileList] }
+    // Có file nên phải gửi dạng FormData (multipart/form-data) thay vì JSON
+    const formData = new FormData()
+    formData.append('name', values.name)
+    formData.append('price', values.price)
+    formData.append('categoryId', values.categoryId)
+    formData.append('description', values.description || '')
+
+    // Key "image" phải khớp với upload.single('image') ở backend
+    if (values.image?.[0]?.originFileObj) {
+      formData.append('image', values.image[0].originFileObj)
+    }
+
     try {
-      await dispatch(createProductThunk(values)).unwrap()
+      await dispatch(createProductThunk(formData)).unwrap()
       message.success('Tạo sản phẩm thành công')
       navigate(ROUTES.ADMIN.PRODUCT_LIST)
     } catch (error) {
@@ -73,8 +86,21 @@ function CreateProduct() {
             />
           </Form.Item>
 
-          <Form.Item label="Link ảnh" name="image">
-            <Input placeholder="https://..." />
+          {/* valuePropName + getValueFromEvent: để Form lưu fileList của Upload */}
+          <Form.Item
+            label="Ảnh sản phẩm"
+            name="image"
+            valuePropName="fileList"
+            getValueFromEvent={(e) => e.fileList}
+          >
+            <Upload
+              listType="picture"
+              maxCount={1}
+              accept="image/jpeg,image/png,image/webp"
+              beforeUpload={() => false} // Không tự upload, chỉ giữ file lại để gửi cùng form
+            >
+              <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
+            </Upload>
           </Form.Item>
 
           <Form.Item label="Mô tả" name="description">

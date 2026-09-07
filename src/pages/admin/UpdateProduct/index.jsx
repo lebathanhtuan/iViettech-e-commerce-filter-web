@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { Form, Input, InputNumber, Select, Button, Space, message } from 'antd'
+import { Form, Input, InputNumber, Select, Button, Space, Upload, message } from 'antd'
+import { UploadOutlined } from '@ant-design/icons'
 
 import {
   getProductDetailThunk,
@@ -34,16 +35,29 @@ function UpdateProduct() {
         name: product.name,
         price: product.price,
         categoryId: product.categoryId,
-        image: product.image,
         description: product.description,
+        // Ảnh cũ hiển thị trong Upload dưới dạng 1 item có url (không có originFileObj)
+        image: product.image ? [{ uid: '-1', name: 'Ảnh hiện tại', url: product.image }] : [],
       })
     }
   }, [product, id, form])
 
   const handleSubmit = async (values) => {
-    // values có dạng: { name, price, categoryId, image, description }
+    // values có dạng: { name, price, categoryId, description, image: [fileList] }
+    const formData = new FormData()
+    formData.append('name', values.name)
+    formData.append('price', values.price)
+    formData.append('categoryId', values.categoryId)
+    formData.append('description', values.description || '')
+
+    // Chỉ gửi ảnh khi người dùng chọn file mới (có originFileObj)
+    // Ảnh cũ chỉ có url -> không gửi -> backend giữ ảnh cũ
+    if (values.image?.[0]?.originFileObj) {
+      formData.append('image', values.image[0].originFileObj)
+    }
+
     try {
-      await dispatch(updateProductThunk({ id: id, data: values })).unwrap()
+      await dispatch(updateProductThunk({ id: id, data: formData })).unwrap()
       message.success('Cập nhật sản phẩm thành công')
       navigate(ROUTES.ADMIN.PRODUCT_LIST)
     } catch (error) {
@@ -93,8 +107,21 @@ function UpdateProduct() {
             />
           </Form.Item>
 
-          <Form.Item label="Link ảnh" name="image">
-            <Input placeholder="https://..." />
+          {/* valuePropName + getValueFromEvent: để Form lưu fileList của Upload */}
+          <Form.Item
+            label="Ảnh sản phẩm"
+            name="image"
+            valuePropName="fileList"
+            getValueFromEvent={(e) => e.fileList}
+          >
+            <Upload
+              listType="picture"
+              maxCount={1}
+              accept="image/jpeg,image/png,image/webp"
+              beforeUpload={() => false} // Không tự upload, chỉ giữ file lại để gửi cùng form
+            >
+              <Button icon={<UploadOutlined />}>Chọn ảnh mới</Button>
+            </Upload>
           </Form.Item>
 
           <Form.Item label="Mô tả" name="description">

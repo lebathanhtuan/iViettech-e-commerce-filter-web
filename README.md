@@ -30,8 +30,8 @@ Tài khoản admin mẫu: `admin@example.com` / `123456`. Tài khoản đăng k�
 | `/` | Danh sách sản phẩm | Search, filter theo category (radio), sort theo tên/giá, phân trang kiểu "Xem thêm" |
 | `/products/:id` | Chi tiết sản phẩm | Hiển thị thông tin 1 sản phẩm |
 | `/admin/products` | Admin - Quản lý sản phẩm | Search, filter, sort, pagination, xóa sản phẩm |
-| `/admin/products/create` | Admin - Thêm sản phẩm | Form tạo sản phẩm |
-| `/admin/products/:id/update` | Admin - Cập nhật sản phẩm | Form sửa sản phẩm |
+| `/admin/products/create` | Admin - Thêm sản phẩm | Form tạo sản phẩm, upload ảnh |
+| `/admin/products/:id/update` | Admin - Cập nhật sản phẩm | Form sửa sản phẩm, đổi ảnh (không chọn thì giữ ảnh cũ) |
 
 `AdminLayout` kiểm tra: chưa đăng nhập -> về `/login`; đăng nhập nhưng role không phải `admin` -> về `/`.
 
@@ -43,6 +43,25 @@ Tài khoản admin mẫu: `admin@example.com` / `123456`. Tài khoản đăng k�
    - response: gặp `401` -> gọi `POST /refresh-token` lấy access token mới rồi gọi lại request cũ; refresh cũng lỗi -> xóa token, về `/login`
 3. Mở lại trang: `App.jsx` thấy có `accessToken` -> gọi `GET /profile` để lấy lại thông tin user.
 4. Đăng xuất: gọi `POST /logout` rồi xóa token trong `localStorage`.
+
+## Upload ảnh sản phẩm (FormData)
+
+Form tạo / sửa sản phẩm dùng antd `Upload` với `beforeUpload={() => false}` để chỉ giữ file lại, không tự upload. Khi submit, gom dữ liệu vào `FormData` rồi gửi bằng axios:
+
+```js
+const formData = new FormData()
+formData.append('name', values.name)
+formData.append('price', values.price)
+formData.append('categoryId', values.categoryId)
+formData.append('description', values.description || '')
+// key "image" phải khớp upload.single('image') ở backend
+if (values.image?.[0]?.originFileObj) {
+  formData.append('image', values.image[0].originFileObj)
+}
+await dispatch(createProductThunk(formData)).unwrap()
+```
+
+Không cần tự set `Content-Type: multipart/form-data`, axios tự thêm kèm `boundary`. Backend trả về `image` là link đầy đủ (`http://localhost:3000/uploads/...`) nên FE chỉ cần hiển thị.
 
 ## Cấu trúc thư mục
 
@@ -85,7 +104,8 @@ src/
 
 ```js
 const dispatch = useDispatch()
-const { data: products, total, loading } = useSelector((state) => state.product.productList)
+// API danh sách trả về { data, meta } -> meta là { page, limit, total, totalPages }
+const { data: products, meta, loading } = useSelector((state) => state.product.productList)
 
 useEffect(() => {
   dispatch(getProductListThunk({ keyword, categoryId, sort, page, limit: 8 }))

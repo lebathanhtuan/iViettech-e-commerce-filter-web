@@ -22,7 +22,8 @@ function ProductList() {
   const dispatch = useDispatch()
 
   // Lấy dữ liệu từ redux store
-  const { data: products, total, loading } = useSelector((state) => state.product.productList)
+  // meta chứa thông tin phân trang: { page, limit, total, totalPages }
+  const { data: products, meta, loading } = useSelector((state) => state.product.productList)
   const { data: categories } = useSelector((state) => state.category.categoryList)
 
   // Các state điều khiển việc search / filter / sort / phân trang
@@ -134,8 +135,8 @@ function ProductList() {
           </Row>
         )}
 
-        {/* Chỉ hiện nút "Xem thêm" khi còn sản phẩm chưa load hết */}
-        {products.length < total && (
+        {/* Chỉ hiện nút "Xem thêm" khi trang hiện tại chưa phải trang cuối */}
+        {meta.page < meta.totalPages && (
           <S.ShowMoreWrapper>
             <Button onClick={handleShowMore} loading={loading}>
               Xem thêm

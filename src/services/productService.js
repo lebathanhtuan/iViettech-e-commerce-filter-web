@@ -11,7 +11,11 @@ import api from './api'
  *  - page: trang hiện tại
  *  - limit: số sản phẩm mỗi trang
  *
- * Kết quả trả về dạng: { data: [...danh sách sản phẩm], total: tổng số sản phẩm }
+ * Kết quả trả về dạng:
+ *  {
+ *    data: [...danh sách sản phẩm của trang hiện tại],
+ *    meta: { page, limit, total, totalPages } // thông tin phân trang
+ *  }
  */
 export const getProductList = async (params) => {
   const response = await api.get('/products', { params })
@@ -46,7 +50,7 @@ export const getCategoryList = async () => {
  * Lấy danh sách sản phẩm cho trang ADMIN
  *
  * API: GET /admin/products - params giống getProductList
- * Kết quả trả về dạng: { data: [...], total }
+ * Kết quả trả về dạng: { data: [...], meta: { page, limit, total, totalPages } }
  */
 export const getAdminProductList = async (params) => {
   const response = await api.get('/admin/products', { params })
@@ -57,7 +61,8 @@ export const getAdminProductList = async (params) => {
  * Tạo mới 1 sản phẩm
  *
  * API: POST /admin/products
- * body: { name, price, categoryId, image, description }
+ * data là FormData gồm: name, price, categoryId, description, image (file)
+ * Gửi FormData thì axios tự set Content-Type: multipart/form-data, không cần set tay
  */
 export const createProduct = async (data) => {
   const response = await api.post('/admin/products', data)
@@ -68,7 +73,7 @@ export const createProduct = async (data) => {
  * Cập nhật 1 sản phẩm theo id
  *
  * API: PATCH /admin/products/:id
- * body: { name, price, categoryId, image, description }
+ * data là FormData giống createProduct, không gửi image thì backend giữ ảnh cũ
  */
 export const updateProduct = async (id, data) => {
   const response = await api.patch(`/admin/products/${id}`, data)
