@@ -1,32 +1,34 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import { Form, Input, InputNumber, Select, Button, Space, message } from 'antd'
 
-import { createProduct, getCategoryList } from '../../../services/productService'
-import { MOCK_CATEGORIES } from '../../../constants/mockData'
+import { createProductThunk } from '../../../redux/thunks/product.thunk'
+import { getCategoryListThunk } from '../../../redux/thunks/category.thunk'
 import { ROUTES } from '../../../constants/routes'
 import * as S from './styled'
 
 function CreateProduct() {
   const navigate = useNavigate()
+  const dispatch = useDispatch()
 
-  // Dữ liệu mẫu để xem trước giao diện, khi có API sẽ được thay bằng dữ liệu thật
-  const [categories, setCategories] = useState(MOCK_CATEGORIES)
+  const { data: categories } = useSelector((state) => state.category.categoryList)
+  const { loading } = useSelector((state) => state.product.createProductData)
 
   // Lấy danh sách category cho ô select
   useEffect(() => {
-    const fetchCategories = async () => {
-      const data = await getCategoryList()
-      if (data) setCategories(data)
-    }
-    fetchCategories()
-  }, [])
+    dispatch(getCategoryListThunk())
+  }, [dispatch])
 
   const handleSubmit = async (values) => {
-    // values có dạng: { name, price, categoryId }
-    await createProduct(values)
-    message.success('Tạo sản phẩm thành công')
-    navigate(ROUTES.ADMIN.PRODUCT_LIST)
+    // values có dạng: { name, price, categoryId, image, description }
+    try {
+      await dispatch(createProductThunk(values)).unwrap()
+      message.success('Tạo sản phẩm thành công')
+      navigate(ROUTES.ADMIN.PRODUCT_LIST)
+    } catch (error) {
+      message.error(error)
+    }
   }
 
   return (
@@ -71,11 +73,19 @@ function CreateProduct() {
             />
           </Form.Item>
 
+          <Form.Item label="Link ảnh" name="image">
+            <Input placeholder="https://..." />
+          </Form.Item>
+
+          <Form.Item label="Mô tả" name="description">
+            <Input.TextArea rows={4} placeholder="Nhập mô tả sản phẩm" />
+          </Form.Item>
+
           <Space>
             <Button onClick={() => navigate(ROUTES.ADMIN.PRODUCT_LIST)}>
               Hủy
             </Button>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" loading={loading}>
               Tạo sản phẩm
             </Button>
           </Space>

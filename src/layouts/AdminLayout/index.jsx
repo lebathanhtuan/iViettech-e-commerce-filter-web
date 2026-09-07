@@ -1,8 +1,10 @@
-import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
+import { Outlet, Link, Navigate, useNavigate, useLocation } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import { Menu, Button } from 'antd'
 import { AppstoreOutlined, LogoutOutlined } from '@ant-design/icons'
 
 import { ROUTES } from '../../constants/routes'
+import { logoutThunk } from '../../redux/thunks/auth.thunk'
 import * as S from './styled'
 
 const menuItems = [
@@ -16,9 +18,23 @@ const menuItems = [
 function AdminLayout() {
   const navigate = useNavigate()
   const location = useLocation()
+  const dispatch = useDispatch()
 
-  const handleLogout = () => {
-    // TODO: Học viên tự implement - xóa thông tin đăng nhập (nếu có) rồi chuyển về trang login
+  const { data: user } = useSelector((state) => state.auth.userInfo)
+  const accessToken = localStorage.getItem('accessToken')
+
+  // Chưa đăng nhập -> về trang login
+  if (!accessToken) {
+    return <Navigate to={ROUTES.USER.LOGIN} replace />
+  }
+
+  // Đã có thông tin user nhưng không phải admin -> về trang chủ
+  if (user && user.role !== 'admin') {
+    return <Navigate to={ROUTES.USER.HOME} replace />
+  }
+
+  const handleLogout = async () => {
+    await dispatch(logoutThunk())
     navigate(ROUTES.USER.LOGIN)
   }
 
@@ -36,7 +52,7 @@ function AdminLayout() {
 
       <S.Main>
         <S.Header>
-          <span>Xin chào, Admin</span>
+          <span>Xin chào, {user?.name}</span>
           <Button icon={<LogoutOutlined />} onClick={handleLogout}>
             Đăng xuất
           </Button>

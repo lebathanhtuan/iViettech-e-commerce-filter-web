@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import { Input, Radio, Select, Button, Row, Col, Card, Empty } from 'antd'
 
-import { getProductList, getCategoryList } from '../../services/productService'
-import { MOCK_PRODUCTS, MOCK_CATEGORIES } from '../../constants/mockData'
+import { getProductListThunk } from '../../redux/thunks/product.thunk'
+import { getCategoryListThunk } from '../../redux/thunks/category.thunk'
 import { ROUTES } from '../../constants/routes'
 import * as S from './styled'
 
@@ -18,10 +19,11 @@ const sortOptions = [
 ]
 
 function ProductList() {
-  // Dữ liệu mẫu để xem trước giao diện, khi có API sẽ được thay bằng dữ liệu thật
-  const [products, setProducts] = useState(MOCK_PRODUCTS)
-  const [total, setTotal] = useState(MOCK_PRODUCTS.length)
-  const [categories, setCategories] = useState(MOCK_CATEGORIES)
+  const dispatch = useDispatch()
+
+  // Lấy dữ liệu từ redux store
+  const { data: products, total, loading } = useSelector((state) => state.product.productList)
+  const { data: categories } = useSelector((state) => state.category.categoryList)
 
   // Các state điều khiển việc search / filter / sort / phân trang
   const [keyword, setKeyword] = useState('')
@@ -31,35 +33,22 @@ function ProductList() {
 
   // Lấy danh sách category để render radio filter
   useEffect(() => {
-    const fetchCategories = async () => {
-      const data = await getCategoryList()
-      if (data) setCategories(data)
-    }
-    fetchCategories()
-  }, [])
+    dispatch(getCategoryListThunk())
+  }, [dispatch])
 
   // Lấy danh sách sản phẩm mỗi khi keyword / filter / sort / page thay đổi
   useEffect(() => {
-    const fetchProducts = async () => {
-      const result = await getProductList({
+    dispatch(
+      getProductListThunk({
         keyword,
         categoryId,
         sort,
         page,
         limit: PAGE_SIZE,
+        more: page > 1, // trang > 1 nghĩa là đang bấm "Xem thêm" -> nối tiếp danh sách
       })
-      if (!result) return
-      setTotal(result.total)
-      if (page === 1) {
-        // Trang đầu: thay mới danh sách
-        setProducts(result.data)
-      } else {
-        // Bấm "Xem thêm": nối tiếp vào danh sách cũ
-        setProducts((prev) => [...prev, ...result.data])
-      }
-    }
-    fetchProducts()
-  }, [keyword, categoryId, sort, page])
+    )
+  }, [dispatch, keyword, categoryId, sort, page])
 
   const handleSearch = (value) => {
     setKeyword(value)
@@ -118,7 +107,7 @@ function ProductList() {
           />
         </S.Toolbar>
 
-        {products.length === 0 ? (
+        {products.length === 0 && !loading ? (
           <Empty description="Chưa có sản phẩm nào" />
         ) : (
           <Row gutter={[16, 16]}>
@@ -148,7 +137,9 @@ function ProductList() {
         {/* Chỉ hiện nút "Xem thêm" khi còn sản phẩm chưa load hết */}
         {products.length < total && (
           <S.ShowMoreWrapper>
-            <Button onClick={handleShowMore}>Xem thêm</Button>
+            <Button onClick={handleShowMore} loading={loading}>
+              Xem thêm
+            </Button>
           </S.ShowMoreWrapper>
         )}
       </Col>

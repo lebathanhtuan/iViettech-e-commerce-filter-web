@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import { Table, Input, Select, Button, Space, Popconfirm, message } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 
 import {
-  getProductList,
-  getCategoryList,
-  deleteProduct,
-} from '../../../services/productService'
-import { MOCK_PRODUCTS, MOCK_CATEGORIES } from '../../../constants/mockData'
+  getAdminProductListThunk,
+  deleteProductThunk,
+} from '../../../redux/thunks/product.thunk'
+import { getCategoryListThunk } from '../../../redux/thunks/category.thunk'
 import { ROUTES } from '../../../constants/routes'
 import * as S from './styled'
 
@@ -16,11 +16,11 @@ const PAGE_SIZE = 10
 
 function AdminProductList() {
   const navigate = useNavigate()
+  const dispatch = useDispatch()
 
-  // Dữ liệu mẫu để xem trước giao diện, khi có API sẽ được thay bằng dữ liệu thật
-  const [products, setProducts] = useState(MOCK_PRODUCTS)
-  const [total, setTotal] = useState(MOCK_PRODUCTS.length)
-  const [categories, setCategories] = useState(MOCK_CATEGORIES)
+  // Lấy dữ liệu từ redux store
+  const { data: products, total, loading } = useSelector((state) => state.product.productList)
+  const { data: categories } = useSelector((state) => state.category.categoryList)
 
   // Các state điều khiển việc search / filter / sort / phân trang
   const [keyword, setKeyword] = useState('')
@@ -30,29 +30,13 @@ function AdminProductList() {
 
   // Lấy danh sách category cho filter
   useEffect(() => {
-    const fetchCategories = async () => {
-      const data = await getCategoryList()
-      if (data) setCategories(data)
-    }
-    fetchCategories()
-  }, [])
+    dispatch(getCategoryListThunk())
+  }, [dispatch])
 
   // Lấy danh sách sản phẩm mỗi khi keyword / filter / sort / page thay đổi
   useEffect(() => {
-    const fetchProducts = async () => {
-      const result = await getProductList({
-        keyword,
-        categoryId,
-        sort,
-        page,
-        limit: PAGE_SIZE,
-      })
-      if (!result) return
-      setProducts(result.data)
-      setTotal(result.total)
-    }
-    fetchProducts()
-  }, [keyword, categoryId, sort, page])
+    dispatch(getAdminProductListThunk({ keyword, categoryId, sort, page, limit: PAGE_SIZE }))
+  }, [dispatch, keyword, categoryId, sort, page])
 
   const handleSearch = (value) => {
     setKeyword(value)
@@ -77,19 +61,14 @@ function AdminProductList() {
   }
 
   const handleDeleteProduct = async (id) => {
-    await deleteProduct(id)
-    message.success('Xóa sản phẩm thành công')
-    // Gọi lại API để lấy danh sách mới nhất
-    const result = await getProductList({
-      keyword,
-      categoryId,
-      sort,
-      page,
-      limit: PAGE_SIZE,
-    })
-    if (!result) return
-    setProducts(result.data)
-    setTotal(result.total)
+    try {
+      await dispatch(deleteProductThunk(id)).unwrap()
+      message.success('Xóa sản phẩm thành công')
+      // Gọi lại API để lấy danh sách mới nhất
+      dispatch(getAdminProductListThunk({ keyword, categoryId, sort, page, limit: PAGE_SIZE }))
+    } catch (error) {
+      message.error(error)
+    }
   }
 
   const columns = [
@@ -183,6 +162,7 @@ function AdminProductList() {
         rowKey="id"
         columns={columns}
         dataSource={products}
+        loading={loading}
         onChange={handleTableChange}
         pagination={{
           current: page,

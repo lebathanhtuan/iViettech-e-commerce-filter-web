@@ -1,24 +1,40 @@
-// eslint-disable-next-line no-unused-vars
 import api from './api'
 
 /**
- * [BÀI TẬP] Đăng nhập
- *
- * API: POST /login
- * data gồm: { email, password }
+ * Đăng nhập
+ * API: POST /login - data: { email, password }
+ * Kết quả: { accessToken, refreshToken, user: { id, name, email, role } }
  */
-// eslint-disable-next-line no-unused-vars
 export const login = async (data) => {
-  // TODO: Học viên tự implement - gọi API đăng nhập
+  const response = await api.post('/login', data)
+  return response.data
 }
 
 /**
- * [BÀI TẬP] Đăng ký tài khoản
- *
- * API: POST /register
- * data gồm: { fullName, email, password }
+ * Đăng ký tài khoản
+ * API: POST /register - data: { fullName, email, password }
+ * Kết quả: { id, name, email, role }
  */
-// eslint-disable-next-line no-unused-vars
 export const register = async (data) => {
-  // TODO: Học viên tự implement - gọi API đăng ký
+  const response = await api.post('/register', data)
+  return response.data
+}
+
+/**
+ * Lấy thông tin user đang đăng nhập (cần access token)
+ * API: GET /profile
+ * Kết quả: { id, name, email, role }
+ */
+export const getMyProfile = async () => {
+  const response = await api.get('/profile')
+  return response.data
+}
+
+/**
+ * Đăng xuất (cần access token) - backend sẽ xóa refresh token trong DB
+ * API: POST /logout
+ */
+export const logout = async () => {
+  const response = await api.post('/logout')
+  return response.data
 }

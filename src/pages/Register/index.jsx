@@ -1,19 +1,31 @@
-import { Link } from 'react-router-dom'
-import { Form, Input, Button } from 'antd'
+import { Link, useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { Form, Input, Button, message } from 'antd'
 
-import { register } from '../../services/authService'
+import { registerThunk } from '../../redux/thunks/auth.thunk'
 import { ROUTES } from '../../constants/routes'
 import * as S from './styled'
 
 function Register() {
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+
+  const { loading } = useSelector((state) => state.auth.registerData)
+
   const handleSubmit = async (values) => {
-    await register({
-      fullName: values.fullName,
-      email: values.email,
-      password: values.password,
-    })
-    // TODO: Học viên tự implement - xử lý kết quả đăng ký
-    // (thông báo thành công, chuyển sang trang login...)
+    try {
+      await dispatch(
+        registerThunk({
+          fullName: values.fullName,
+          email: values.email,
+          password: values.password,
+        })
+      ).unwrap()
+      message.success('Đăng ký thành công, hãy đăng nhập')
+      navigate(ROUTES.USER.LOGIN)
+    } catch (error) {
+      message.error(error)
+    }
   }
 
   return (
@@ -71,7 +83,7 @@ function Register() {
             <Input.Password placeholder="Nhập lại mật khẩu" />
           </Form.Item>
 
-          <Button type="primary" htmlType="submit" block>
+          <Button type="primary" htmlType="submit" loading={loading} block>
             Đăng ký
           </Button>
         </Form>

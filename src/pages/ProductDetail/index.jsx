@@ -1,21 +1,24 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { Row, Col, Button, Empty } from 'antd'
+import { useDispatch, useSelector } from 'react-redux'
+import { Row, Col, Button, Empty, Spin } from 'antd'
 
-import { getProductDetail } from '../../services/productService'
+import { getProductDetailThunk } from '../../redux/thunks/product.thunk'
 import * as S from './styled'
 
 function ProductDetail() {
   const { id } = useParams()
-  const [product, setProduct] = useState(null)
+  const dispatch = useDispatch()
+
+  const { data: product, loading } = useSelector((state) => state.product.productDetail)
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      const data = await getProductDetail(id)
-      setProduct(data || null)
-    }
-    fetchProduct()
-  }, [id])
+    dispatch(getProductDetailThunk(id))
+  }, [dispatch, id])
+
+  if (loading) {
+    return <Spin style={{ display: 'block', margin: '48px auto' }} />
+  }
 
   if (!product) {
     return <Empty description="Không tìm thấy sản phẩm" />

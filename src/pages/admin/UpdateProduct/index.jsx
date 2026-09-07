@@ -1,55 +1,54 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import { Form, Input, InputNumber, Select, Button, Space, message } from 'antd'
 
 import {
-  getProductDetail,
-  updateProduct,
-  getCategoryList,
-} from '../../../services/productService'
-import { MOCK_CATEGORIES, MOCK_PRODUCTS } from '../../../constants/mockData'
+  getProductDetailThunk,
+  updateProductThunk,
+} from '../../../redux/thunks/product.thunk'
+import { getCategoryListThunk } from '../../../redux/thunks/category.thunk'
 import { ROUTES } from '../../../constants/routes'
 import * as S from './styled'
 
 function UpdateProduct() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const dispatch = useDispatch()
   const [form] = Form.useForm()
 
-  // Dữ liệu mẫu để xem trước giao diện, khi có API sẽ được thay bằng dữ liệu thật
-  const [categories, setCategories] = useState(MOCK_CATEGORIES)
+  const { data: categories } = useSelector((state) => state.category.categoryList)
+  const { data: product } = useSelector((state) => state.product.productDetail)
+  const { loading } = useSelector((state) => state.product.updateProductData)
 
-  // Lấy danh sách category cho ô select
+  // Lấy danh sách category cho ô select + thông tin sản phẩm hiện tại
   useEffect(() => {
-    const fetchCategories = async () => {
-      const data = await getCategoryList()
-      if (data) setCategories(data)
-    }
-    fetchCategories()
-  }, [])
+    dispatch(getCategoryListThunk())
+    dispatch(getProductDetailThunk(id))
+  }, [dispatch, id])
 
-  // Lấy thông tin sản phẩm hiện tại rồi điền sẵn vào form
+  // Khi có dữ liệu sản phẩm thì điền sẵn vào form
   useEffect(() => {
-    const fetchProduct = async () => {
-      const data = await getProductDetail(id)
-      // Khi chưa có API thì tạm lấy từ dữ liệu mẫu để xem giao diện
-      const product =
-        data || MOCK_PRODUCTS.find((item) => item.id === Number(id))
-      if (!product) return
+    if (product && product.id === Number(id)) {
       form.setFieldsValue({
         name: product.name,
         price: product.price,
         categoryId: product.categoryId,
+        image: product.image,
+        description: product.description,
       })
     }
-    fetchProduct()
-  }, [id, form])
+  }, [product, id, form])
 
   const handleSubmit = async (values) => {
-    // values có dạng: { name, price, categoryId }
-    await updateProduct(id, values)
-    message.success('Cập nhật sản phẩm thành công')
-    navigate(ROUTES.ADMIN.PRODUCT_LIST)
+    // values có dạng: { name, price, categoryId, image, description }
+    try {
+      await dispatch(updateProductThunk({ id: id, data: values })).unwrap()
+      message.success('Cập nhật sản phẩm thành công')
+      navigate(ROUTES.ADMIN.PRODUCT_LIST)
+    } catch (error) {
+      message.error(error)
+    }
   }
 
   return (
@@ -94,11 +93,19 @@ function UpdateProduct() {
             />
           </Form.Item>
 
+          <Form.Item label="Link ảnh" name="image">
+            <Input placeholder="https://..." />
+          </Form.Item>
+
+          <Form.Item label="Mô tả" name="description">
+            <Input.TextArea rows={4} placeholder="Nhập mô tả sản phẩm" />
+          </Form.Item>
+
           <Space>
             <Button onClick={() => navigate(ROUTES.ADMIN.PRODUCT_LIST)}>
               Hủy
             </Button>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" loading={loading}>
               Cập nhật
             </Button>
           </Space>

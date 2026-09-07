@@ -1,15 +1,32 @@
-import { Link } from 'react-router-dom'
-import { Form, Input, Button } from 'antd'
+import { Link, useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { Form, Input, Button, message } from 'antd'
 
-import { login } from '../../services/authService'
+import { loginThunk } from '../../redux/thunks/auth.thunk'
 import { ROUTES } from '../../constants/routes'
 import * as S from './styled'
 
 function Login() {
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+
+  const { loading } = useSelector((state) => state.auth.loginData)
+
   const handleSubmit = async (values) => {
-    await login(values)
-    // TODO: Học viên tự implement - xử lý kết quả đăng nhập
-    // (lưu token, thông báo thành công, chuyển trang...)
+    try {
+      // unwrap(): thunk thành công thì trả về payload, thất bại thì throw lỗi
+      const user = await dispatch(loginThunk(values)).unwrap()
+      message.success('Đăng nhập thành công')
+
+      // Admin -> vào thẳng trang quản lý sản phẩm, user -> về trang chủ
+      if (user.role === 'admin') {
+        navigate(ROUTES.ADMIN.PRODUCT_LIST)
+      } else {
+        navigate(ROUTES.USER.HOME)
+      }
+    } catch (error) {
+      message.error(error)
+    }
   }
 
   return (
@@ -37,7 +54,7 @@ function Login() {
             <Input.Password placeholder="Nhập mật khẩu" />
           </Form.Item>
 
-          <Button type="primary" htmlType="submit" block>
+          <Button type="primary" htmlType="submit" loading={loading} block>
             Đăng nhập
           </Button>
         </Form>

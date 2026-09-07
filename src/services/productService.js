@@ -1,7 +1,7 @@
 import api from './api'
 
 /**
- * Lấy danh sách sản phẩm (dùng chung cho cả trang user và admin)
+ * Lấy danh sách sản phẩm cho trang USER (không cần đăng nhập)
  *
  * API: GET /products
  * params gồm:
@@ -22,7 +22,7 @@ export const getProductList = async (params) => {
  * Lấy chi tiết 1 sản phẩm theo id
  *
  * API: GET /products/:id
- * Kết quả trả về: object sản phẩm { id, name, price, image, description, ... }
+ * Kết quả trả về: object sản phẩm { id, name, price, image, description, categoryId, categoryName }
  */
 export const getProductDetail = async (id) => {
   const response = await api.get(`/products/${id}`)
@@ -30,7 +30,7 @@ export const getProductDetail = async (id) => {
 }
 
 /**
- * Lấy danh sách category (dùng để render radio filter)
+ * Lấy danh sách category (dùng để render radio filter / select)
  *
  * API: GET /categories
  * Kết quả trả về: mảng category [{ id, name }, ...]
@@ -40,36 +40,47 @@ export const getCategoryList = async () => {
   return response.data
 }
 
+// ===== Các API dưới đây dành cho ADMIN (cần access token + role admin) =====
+
+/**
+ * Lấy danh sách sản phẩm cho trang ADMIN
+ *
+ * API: GET /admin/products - params giống getProductList
+ * Kết quả trả về dạng: { data: [...], total }
+ */
+export const getAdminProductList = async (params) => {
+  const response = await api.get('/admin/products', { params })
+  return response.data
+}
+
 /**
  * Tạo mới 1 sản phẩm
  *
- * API: POST /products
- * body: { name, price, categoryId }
- * Kết quả trả về: object sản phẩm vừa tạo
+ * API: POST /admin/products
+ * body: { name, price, categoryId, image, description }
  */
 export const createProduct = async (data) => {
-  const response = await api.post('/products', data)
+  const response = await api.post('/admin/products', data)
   return response.data
 }
 
 /**
  * Cập nhật 1 sản phẩm theo id
  *
- * API: PATCH /products/:id
- * body: { name, price, categoryId }
- * Kết quả trả về: object sản phẩm sau khi cập nhật
+ * API: PATCH /admin/products/:id
+ * body: { name, price, categoryId, image, description }
  */
 export const updateProduct = async (id, data) => {
-  const response = await api.patch(`/products/${id}`, data)
+  const response = await api.patch(`/admin/products/${id}`, data)
   return response.data
 }
 
 /**
  * Xóa 1 sản phẩm theo id
  *
- * API: DELETE /products/:id
+ * API: DELETE /admin/products/:id
  */
 export const deleteProduct = async (id) => {
-  const response = await api.delete(`/products/${id}`)
+  const response = await api.delete(`/admin/products/${id}`)
   return response.data
 }
