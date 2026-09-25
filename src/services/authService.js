@@ -13,7 +13,7 @@ export const login = async (data) => {
 /**
  * Đăng ký tài khoản
  * API: POST /register - data: { fullName, email, password }
- * Kết quả: { id, name, email, role }
+ * Kết quả: { id, name, email, role, phone, avatar }
  */
 export const register = async (data) => {
   const response = await api.post('/register', data)
@@ -23,7 +23,7 @@ export const register = async (data) => {
 /**
  * Lấy thông tin user đang đăng nhập (cần access token)
  * API: GET /profile
- * Kết quả: { id, name, email, role }
+ * Kết quả: { id, name, email, role, phone, avatar }
  */
 export const getMyProfile = async () => {
   const response = await api.get('/profile')
@@ -36,5 +36,34 @@ export const getMyProfile = async () => {
  */
 export const logout = async () => {
   const response = await api.post('/logout')
+  return response.data
+}
+
+/**
+ * Cập nhật thông tin user đang đăng nhập
+ * API: PATCH /profile - data: { name, phone }
+ * Kết quả: { id, name, email, role, phone, avatar }
+ */
+export const updateMyProfile = async (data) => {
+  const response = await api.patch('/profile', data)
+  return response.data
+}
+
+/**
+ * Đổi mật khẩu
+ * API: PATCH /profile/password - data: { currentPassword, newPassword }
+ */
+export const changePassword = async (data) => {
+  const response = await api.patch('/profile/password', data)
+  return response.data
+}
+
+/**
+ * Đổi avatar
+ * API: PATCH /profile/avatar - data là FormData có field "avatar" (file)
+ * Kết quả: thông tin user mới (avatar là link đầy đủ)
+ */
+export const updateAvatar = async (data) => {
+  const response = await api.patch('/profile/avatar', data)
   return response.data
 }

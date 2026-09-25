@@ -5,6 +5,9 @@ import {
   registerThunk,
   getMyProfileThunk,
   logoutThunk,
+  updateMyProfileThunk,
+  changePasswordThunk,
+  updateAvatarThunk,
 } from '../thunks/auth.thunk'
 
 const initialState = {
@@ -19,6 +22,18 @@ const initialState = {
     error: null,
   },
   registerData: {
+    loading: false,
+    error: null,
+  },
+  updateProfileData: {
+    loading: false,
+    error: null,
+  },
+  changePasswordData: {
+    loading: false,
+    error: null,
+  },
+  updateAvatarData: {
     loading: false,
     error: null,
   },
@@ -73,6 +88,47 @@ const authSlice = createSlice({
     // Logout
     builder.addCase(logoutThunk.fulfilled, (state) => {
       state.userInfo.data = null
+    })
+
+    // Update profile: thành công thì thay thông tin user bằng dữ liệu mới backend trả về
+    builder.addCase(updateMyProfileThunk.pending, (state) => {
+      state.updateProfileData.loading = true
+      state.updateProfileData.error = null
+    })
+    builder.addCase(updateMyProfileThunk.fulfilled, (state, action) => {
+      state.updateProfileData.loading = false
+      state.userInfo.data = action.payload
+    })
+    builder.addCase(updateMyProfileThunk.rejected, (state, action) => {
+      state.updateProfileData.loading = false
+      state.updateProfileData.error = action.payload
+    })
+
+    // Change password
+    builder.addCase(changePasswordThunk.pending, (state) => {
+      state.changePasswordData.loading = true
+      state.changePasswordData.error = null
+    })
+    builder.addCase(changePasswordThunk.fulfilled, (state) => {
+      state.changePasswordData.loading = false
+    })
+    builder.addCase(changePasswordThunk.rejected, (state, action) => {
+      state.changePasswordData.loading = false
+      state.changePasswordData.error = action.payload
+    })
+
+    // Update avatar
+    builder.addCase(updateAvatarThunk.pending, (state) => {
+      state.updateAvatarData.loading = true
+      state.updateAvatarData.error = null
+    })
+    builder.addCase(updateAvatarThunk.fulfilled, (state, action) => {
+      state.updateAvatarData.loading = false
+      state.userInfo.data = action.payload
+    })
+    builder.addCase(updateAvatarThunk.rejected, (state, action) => {
+      state.updateAvatarData.loading = false
+      state.updateAvatarData.error = action.payload
     })
   },
 })

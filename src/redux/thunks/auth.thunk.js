@@ -58,3 +58,42 @@ export const logoutThunk = createAsyncThunk('auth/logout', async () => {
     localStorage.removeItem('refreshToken')
   }
 })
+
+// Cập nhật thông tin cá nhân - data: { name, phone }
+export const updateMyProfileThunk = createAsyncThunk(
+  'auth/updateMyProfile',
+  async (data, { rejectWithValue }) => {
+    try {
+      const result = await authService.updateMyProfile(data)
+      return result
+    } catch (error) {
+      return rejectWithValue(getErrorMessage(error))
+    }
+  }
+)
+
+// Đổi mật khẩu - data: { currentPassword, newPassword }
+export const changePasswordThunk = createAsyncThunk(
+  'auth/changePassword',
+  async (data, { rejectWithValue }) => {
+    try {
+      const result = await authService.changePassword(data)
+      return result
+    } catch (error) {
+      return rejectWithValue(getErrorMessage(error))
+    }
+  }
+)
+
+// Đổi avatar - data là FormData có field "avatar"
+export const updateAvatarThunk = createAsyncThunk(
+  'auth/updateAvatar',
+  async (data, { rejectWithValue }) => {
+    try {
+      const result = await authService.updateAvatar(data)
+      return result
+    } catch (error) {
+      return rejectWithValue(getErrorMessage(error))
+    }
+  }
+)

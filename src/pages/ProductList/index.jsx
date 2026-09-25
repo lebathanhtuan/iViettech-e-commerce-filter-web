@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { Input, Radio, Select, Button, Row, Col, Card, Empty } from 'antd'
 
@@ -26,48 +26,59 @@ function ProductList() {
   const { data: products, meta, loading } = useSelector((state) => state.product.productList)
   const { data: categories } = useSelector((state) => state.category.categoryList)
 
-  // Các state điều khiển việc search / filter / sort / phân trang
-  const [keyword, setKeyword] = useState('')
-  const [categoryId, setCategoryId] = useState('')
-  const [sort, setSort] = useState('')
-  const [page, setPage] = useState(1)
+  // Các filter được lưu trên URL, vd: /?keyword=mac&categoryId=1&sort=price_asc
+  // -> F5 hoặc gửi link cho người khác vẫn giữ nguyên bộ lọc
+  const [searchParams, setSearchParams] = useSearchParams()
+  const keyword = searchParams.get('keyword') || ''
+  // category.id là số, còn giá trị trên URL là chuỗi -> đổi sang số để Radio so sánh đúng
+  const categoryId = Number(searchParams.get('categoryId')) || ''
+  const sort = searchParams.get('sort') || ''
 
   // Lấy danh sách category để render radio filter
   useEffect(() => {
     dispatch(getCategoryListThunk())
   }, [dispatch])
 
-  // Lấy danh sách sản phẩm mỗi khi keyword / filter / sort / page thay đổi
+  // Mỗi khi filter trên URL thay đổi -> lấy lại danh sách từ trang 1
   useEffect(() => {
+    dispatch(getProductListThunk({ keyword, categoryId, sort, page: 1, limit: PAGE_SIZE }))
+  }, [dispatch, keyword, categoryId, sort])
+
+  // Cập nhật 1 filter lên URL (giữ nguyên các filter khác), giá trị rỗng thì xóa khỏi URL
+  const updateFilter = (key, value) => {
+    const newSearchParams = new URLSearchParams(searchParams)
+    if (value) {
+      newSearchParams.set(key, value)
+    } else {
+      newSearchParams.delete(key)
+    }
+    setSearchParams(newSearchParams)
+  }
+
+  const handleSearch = (value) => {
+    updateFilter('keyword', value.trim())
+  }
+
+  const handleChangeCategory = (e) => {
+    updateFilter('categoryId', e.target.value)
+  }
+
+  const handleChangeSort = (value) => {
+    updateFilter('sort', value)
+  }
+
+  // "Xem thêm": lấy trang tiếp theo (meta.page + 1) và nối tiếp vào danh sách cũ
+  const handleShowMore = () => {
     dispatch(
       getProductListThunk({
         keyword,
         categoryId,
         sort,
-        page,
+        page: meta.page + 1,
         limit: PAGE_SIZE,
-        more: page > 1, // trang > 1 nghĩa là đang bấm "Xem thêm" -> nối tiếp danh sách
+        more: true,
       })
     )
-  }, [dispatch, keyword, categoryId, sort, page])
-
-  const handleSearch = (value) => {
-    setKeyword(value)
-    setPage(1)
-  }
-
-  const handleChangeCategory = (e) => {
-    setCategoryId(e.target.value)
-    setPage(1)
-  }
-
-  const handleChangeSort = (value) => {
-    setSort(value)
-    setPage(1)
-  }
-
-  const handleShowMore = () => {
-    setPage(page + 1)
   }
 
   return (
@@ -96,6 +107,7 @@ function ProductList() {
         <S.Toolbar>
           <Input.Search
             placeholder="Tìm kiếm sản phẩm..."
+            defaultValue={keyword}
             onSearch={handleSearch}
             style={{ width: 300 }}
             allowClear

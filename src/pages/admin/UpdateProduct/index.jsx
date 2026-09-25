@@ -10,6 +10,7 @@ import {
 } from '../../../redux/thunks/product.thunk'
 import { getCategoryListThunk } from '../../../redux/thunks/category.thunk'
 import { ROUTES } from '../../../constants/routes'
+import QuillEditor from '../../../components/QuillEditor'
 import * as S from './styled'
 
 function UpdateProduct() {
@@ -124,8 +125,9 @@ function UpdateProduct() {
             </Upload>
           </Form.Item>
 
+          {/* Mô tả dùng Quill editor, giá trị là chuỗi HTML */}
           <Form.Item label="Mô tả" name="description">
-            <Input.TextArea rows={4} placeholder="Nhập mô tả sản phẩm" />
+            <QuillEditor placeholder="Nhập mô tả sản phẩm" />
           </Form.Item>
 
           <Space>
