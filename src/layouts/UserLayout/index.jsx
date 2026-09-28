@@ -8,6 +8,7 @@ import { ROUTES } from '../../constants/routes'
 import { logoutThunk } from '../../redux/thunks/auth.thunk'
 import { getCartListThunk } from '../../redux/thunks/cart.thunk'
 import { getFavoriteListThunk } from '../../redux/thunks/favorite.thunk'
+import ChatBox from '../../components/ChatBox'
 import * as S from './styled'
 
 function UserLayout() {
@@ -77,6 +78,9 @@ function UserLayout() {
       </S.Content>
 
       <S.Footer>© 2026 MyShop - Bài tập thực hành React</S.Footer>
+
+      {/* Nút chat với shop: chỉ hiện cho user đã đăng nhập (admin trả lời ở trang /admin/chat) */}
+      {user && user.role !== 'admin' && <ChatBox />}
     </S.Wrapper>
   )
 }

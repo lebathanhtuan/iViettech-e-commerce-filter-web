@@ -19,6 +19,7 @@ import Profile from './pages/Profile'
 import AdminProductList from './pages/admin/ProductList'
 import AdminCreateProduct from './pages/admin/CreateProduct'
 import AdminUpdateProduct from './pages/admin/UpdateProduct'
+import AdminChat from './pages/admin/Chat'
 
 function App() {
   const dispatch = useDispatch()
@@ -54,6 +55,7 @@ function App() {
         <Route path={ROUTES.ADMIN.PRODUCT_LIST} element={<AdminProductList />} />
         <Route path={ROUTES.ADMIN.CREATE_PRODUCT} element={<AdminCreateProduct />} />
         <Route path={ROUTES.ADMIN.UPDATE_PRODUCT} element={<AdminUpdateProduct />} />
+        <Route path={ROUTES.ADMIN.CHAT} element={<AdminChat />} />
       </Route>
     </Routes>
   )

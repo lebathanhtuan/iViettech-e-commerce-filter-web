@@ -7,6 +7,7 @@ import cartReducer from './slices/cart.slice'
 import orderReducer from './slices/order.slice'
 import reviewReducer from './slices/review.slice'
 import favoriteReducer from './slices/favorite.slice'
+import chatReducer from './slices/chat.slice'
 
 // Store tổng của toàn app, mỗi slice quản lý 1 phần state
 // Dùng trong component: useSelector((state) => state.product.productList)
@@ -19,6 +20,7 @@ const store = configureStore({
     order: orderReducer,
     review: reviewReducer,
     favorite: favoriteReducer,
+    chat: chatReducer,
   },
 })
 

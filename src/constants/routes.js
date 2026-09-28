@@ -14,5 +14,6 @@ export const ROUTES = {
     PRODUCT_LIST: '/admin/products',
     CREATE_PRODUCT: '/admin/products/create',
     UPDATE_PRODUCT: '/admin/products/:id/update',
+    CHAT: '/admin/chat',
   },
 }

@@ -1,7 +1,7 @@
 import { Outlet, Link, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { Menu, Button } from 'antd'
-import { AppstoreOutlined, LogoutOutlined } from '@ant-design/icons'
+import { AppstoreOutlined, LogoutOutlined, MessageOutlined } from '@ant-design/icons'
 
 import { ROUTES } from '../../constants/routes'
 import { logoutThunk } from '../../redux/thunks/auth.thunk'
@@ -12,6 +12,11 @@ const menuItems = [
     key: ROUTES.ADMIN.PRODUCT_LIST,
     icon: <AppstoreOutlined />,
     label: <Link to={ROUTES.ADMIN.PRODUCT_LIST}>Quản lý sản phẩm</Link>,
+  },
+  {
+    key: ROUTES.ADMIN.CHAT,
+    icon: <MessageOutlined />,
+    label: <Link to={ROUTES.ADMIN.CHAT}>Chat với khách hàng</Link>,
   },
 ]
 

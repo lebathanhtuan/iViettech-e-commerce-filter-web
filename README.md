@@ -37,6 +37,9 @@ Tài khoản admin mẫu: `admin@example.com` / `123456`. Tài khoản đăng k�
 | `/admin/products` | Admin - Quản lý sản phẩm | Search, filter, sort, pagination, xóa sản phẩm |
 | `/admin/products/create` | Admin - Thêm sản phẩm | Form tạo sản phẩm, upload ảnh, mô tả bằng Quill editor |
 | `/admin/products/:id/update` | Admin - Cập nhật sản phẩm | Form sửa sản phẩm, đổi ảnh (không chọn thì giữ ảnh cũ), mô tả bằng Quill editor |
+| `/admin/chat` | Admin - Chat với khách hàng | Danh sách cuộc trò chuyện + trả lời khách realtime (socket.io) |
+
+User đã đăng nhập có nút chat nổi ở góc phải (`components/ChatBox`) để nhắn với shop. Hướng dẫn setup chat và email đơn hàng nằm ở `docs/` của project backend: `chat-socket-io.md`, `order-email-nodemailer.md`.
 
 🔒 = cần đăng nhập. Các route này được bọc trong `layouts/PrivateLayout` (chưa có token -> về `/login`).
 
