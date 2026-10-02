@@ -4,6 +4,8 @@ export const ROUTES = {
     PRODUCT_DETAIL: '/products/:id',
     LOGIN: '/login',
     REGISTER: '/register',
+    FORGOT_PASSWORD: '/forgot-password',
+    RESET_PASSWORD: '/reset-password',
     // Các trang dưới đây cần đăng nhập
     CART: '/cart',
     CHECKOUT: '/checkout',

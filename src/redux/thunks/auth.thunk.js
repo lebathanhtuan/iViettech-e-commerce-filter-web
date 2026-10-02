@@ -1,6 +1,7 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 
 import * as authService from '../../services/authService'
+import { disconnectSocket } from '../../services/socket'
 
 // Lấy message lỗi từ response của backend, không có thì dùng message mặc định
 const getErrorMessage = (error) => error.response?.data?.message || 'Có lỗi xảy ra'
@@ -97,3 +98,21 @@ export const updateAvatarThunk = createAsyncThunk(
     }
   }
 )
+
+export const forgotPasswordThunk = createAsyncThunk('auth/forgotPassword', async (data, { rejectWithValue }) => {
+  try {
+    return await authService.forgotPassword(data)
+  } catch (error) { return rejectWithValue(getErrorMessage(error)) }
+})
+
+export const resetPasswordThunk = createAsyncThunk('auth/resetPassword', async (data, { rejectWithValue }) => {
+  try {
+    const result = await authService.resetPassword(data)
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('refreshToken')
+    disconnectSocket()
+    return result
+  } catch (error) {
+    return rejectWithValue(error.response?.data || { message: 'Không thể đặt lại mật khẩu. Vui lòng thử lại.' })
+  }
+})

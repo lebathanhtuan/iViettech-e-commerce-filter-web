@@ -49,7 +49,10 @@ api.interceptors.response.use(
         // Refresh token cũng hết hạn -> xóa token và về trang login
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
-        window.location.href = '/login'
+        // Link từ email vẫn phải mở được khi trình duyệt đang giữ phiên cũ đã bị thu hồi.
+        if (!['/forgot-password', '/reset-password'].includes(window.location.pathname)) {
+          window.location.href = '/login'
+        }
       }
     }
 

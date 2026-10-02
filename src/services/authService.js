@@ -67,3 +67,8 @@ export const updateAvatar = async (data) => {
   const response = await api.patch('/profile/avatar', data)
   return response.data
 }
+
+export const forgotPassword = async (data) => (await api.post('/forgot-password', data)).data
+export const validateResetPasswordLink = async (token, signal) =>
+  (await api.post('/reset-password/validate', { token }, { signal })).data
+export const resetPassword = async (data) => (await api.post('/reset-password', data)).data

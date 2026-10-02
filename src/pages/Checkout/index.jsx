@@ -1,9 +1,12 @@
-import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { Row, Col, Form, Input, Button, Empty, message } from 'antd'
+import { Row, Col, Form, Input, Button, Empty, Select, Alert, message } from 'antd'
 
 import { createOrderThunk } from '../../redux/thunks/order.thunk'
+import { getAddressListThunk } from '../../redux/thunks/address.thunk'
+import { getCartListThunk } from '../../redux/thunks/cart.thunk'
+import AddressFields from '../../components/AddressFields'
 import { ROUTES } from '../../constants/routes'
 import * as S from './styled'
 
@@ -11,10 +14,29 @@ function Checkout() {
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const [form] = Form.useForm()
+  const [addressesReady, setAddressesReady] = useState(false)
 
   const { data: user } = useSelector((state) => state.auth.userInfo)
   const { data: cartItems } = useSelector((state) => state.cart.cartList)
   const { loading } = useSelector((state) => state.order.createOrderData)
+  const { data: addresses, loading: addressLoading, error: addressError } = useSelector((state) => state.address.addressList)
+  const userId = user?.id
+  const selectedId = Form.useWatch('addressId', form) || 'manual'
+  const selectedAddress = addresses.find((address) => address.id === selectedId)
+
+  // Mở checkout: chọn và điền địa chỉ mặc định. Không ghi đè sau khi user đã chọn/nhập.
+  useEffect(() => {
+    if (!userId) return
+    let active = true
+    dispatch(getAddressListThunk()).unwrap().then((list) => {
+      if (!active) return
+      const defaultAddress = list.find((address) => address.isDefault)
+      if (defaultAddress) form.setFieldsValue({ ...defaultAddress, addressId: defaultAddress.id })
+    }).catch(() => {
+      // Vẫn cho phép nhập địa chỉ mới khi Sổ địa chỉ tạm không tải được.
+    }).finally(() => { if (active) setAddressesReady(true) })
+    return () => { active = false }
+  }, [dispatch, form, userId])
 
   const totalPrice = cartItems.reduce(
     (total, item) => total + item.product.price * item.quantity,
@@ -23,7 +45,7 @@ function Checkout() {
 
   // Điền sẵn tên + số điện thoại của user đang đăng nhập
   useEffect(() => {
-    if (user) {
+    if (user && !form.getFieldValue('fullName') && !form.isFieldsTouched()) {
       form.setFieldsValue({ fullName: user.name, phone: user.phone })
     }
   }, [user, form])
@@ -33,13 +55,16 @@ function Checkout() {
       // Chỉ gửi thông tin giao hàng lên server.
       // Thông tin thẻ là giả lập: chỉ cần qua được validate của form, không gửi đi đâu cả
       const result = await dispatch(
-        createOrderThunk({
+        createOrderThunk(selectedId !== 'manual' ? { addressId: selectedId } : {
           fullName: values.fullName,
           phone: values.phone,
-          address: values.address,
+          provinceCode: values.provinceCode,
+          wardCode: values.wardCode,
+          addressLine: values.addressLine,
         })
       ).unwrap()
 
+      dispatch(getCartListThunk())
       navigate(ROUTES.USER.CHECKOUT_SUCCESS.replace(':code', result.code))
     } catch (error) {
       message.error(error)
@@ -59,35 +84,33 @@ function Checkout() {
   }
 
   return (
-    <Form form={form} layout="vertical" onFinish={handleSubmit}>
+    <Form form={form} layout="vertical" onFinish={handleSubmit} initialValues={{ addressId: 'manual' }}>
       <Row gutter={24}>
-        <Col span={14}>
+        <Col xs={24} md={14}>
           <S.Box>
             <S.SectionTitle>Thông tin giao hàng</S.SectionTitle>
-            <Form.Item
-              label="Họ tên người nhận"
-              name="fullName"
-              rules={[{ required: true, message: 'Vui lòng nhập họ tên' }]}
-            >
-              <Input placeholder="Nhập họ tên" />
+            {addressError && <Alert type="warning" showIcon title="Không tải được Sổ địa chỉ. Bạn có thể nhập địa chỉ mới để tiếp tục."
+              description={addressError} style={{ marginBottom: 16 }} />}
+            <Form.Item label="Chọn địa chỉ giao hàng" name="addressId">
+              <Select loading={addressLoading} disabled={!addressesReady}
+                options={[
+                  ...addresses.map((address) => ({ value: address.id,
+                    label: `${address.isDefault ? '[Mặc định] ' : ''}${address.label || address.fullName} - ${address.fullAddress}` })),
+                  { value: 'manual', label: 'Nhập địa chỉ khác' },
+                ]}
+                onChange={(id) => {
+                  const address = addresses.find((item) => item.id === id)
+                  form.setFieldsValue(address || { fullName: user?.name, phone: user?.phone,
+                    provinceCode: undefined, wardCode: undefined, addressLine: undefined })
+                }} />
             </Form.Item>
-            <Form.Item
-              label="Số điện thoại"
-              name="phone"
-              rules={[
-                { required: true, message: 'Vui lòng nhập số điện thoại' },
-                { pattern: /^0\d{9}$/, message: 'Số điện thoại gồm 10 số, bắt đầu bằng 0' },
-              ]}
-            >
-              <Input placeholder="Nhập số điện thoại" />
-            </Form.Item>
-            <Form.Item
-              label="Địa chỉ nhận hàng"
-              name="address"
-              rules={[{ required: true, message: 'Vui lòng nhập địa chỉ' }]}
-            >
-              <Input.TextArea rows={2} placeholder="Số nhà, đường, phường/xã, tỉnh/thành phố" />
-            </Form.Item>
+            {selectedAddress ? (
+              <div style={{ marginBottom: 16 }}>
+                <p><strong>{selectedAddress.fullName}</strong> - {selectedAddress.phone}</p>
+                <p>{selectedAddress.fullAddress}</p>
+              </div>
+            ) : <AddressFields form={form} disabled={!addressesReady} />}
+            <Link to={`${ROUTES.USER.PROFILE}?tab=addresses`}>Quản lý Sổ địa chỉ</Link>
           </S.Box>
 
           <S.Box>
@@ -139,7 +162,7 @@ function Checkout() {
           </S.Box>
         </Col>
 
-        <Col span={10}>
+        <Col xs={24} md={10}>
           <S.Box>
             <S.SectionTitle>Đơn hàng ({cartItems.length} sản phẩm)</S.SectionTitle>
             {cartItems.map((item) => (
@@ -154,7 +177,7 @@ function Checkout() {
               <span>Tổng tiền</span>
               <span>{totalPrice.toLocaleString('vi-VN')} đ</span>
             </S.TotalPrice>
-            <Button type="primary" size="large" htmlType="submit" loading={loading} block>
+            <Button type="primary" size="large" htmlType="submit" loading={loading} disabled={!addressesReady} block>
               Đặt hàng
             </Button>
           </S.Box>

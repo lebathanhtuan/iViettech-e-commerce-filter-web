@@ -4,7 +4,7 @@ import * as orderService from '../../services/orderService'
 
 const getErrorMessage = (error) => error.response?.data?.message || 'Có lỗi xảy ra'
 
-// Đặt hàng - data: { fullName, phone, address }
+// Đặt hàng - data: { addressId } hoặc { fullName, phone, provinceCode, wardCode, addressLine }
 export const createOrderThunk = createAsyncThunk(
   'order/createOrder',
   async (data, { rejectWithValue }) => {

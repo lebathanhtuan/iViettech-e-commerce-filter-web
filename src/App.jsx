@@ -10,6 +10,8 @@ import PrivateLayout from './layouts/PrivateLayout'
 
 import Login from './pages/Login'
 import Register from './pages/Register'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import ProductList from './pages/ProductList'
 import ProductDetail from './pages/ProductDetail'
 import Cart from './pages/Cart'
@@ -40,6 +42,8 @@ function App() {
         <Route path={ROUTES.USER.PRODUCT_DETAIL} element={<ProductDetail />} />
         <Route path={ROUTES.USER.LOGIN} element={<Login />} />
         <Route path={ROUTES.USER.REGISTER} element={<Register />} />
+        <Route path={ROUTES.USER.FORGOT_PASSWORD} element={<ForgotPassword />} />
+        <Route path={ROUTES.USER.RESET_PASSWORD} element={<ResetPassword />} />
 
         {/* Các trang cần đăng nhập */}
         <Route element={<PrivateLayout />}>

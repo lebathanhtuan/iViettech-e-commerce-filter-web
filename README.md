@@ -27,19 +27,27 @@ Tài khoản admin mẫu: `admin@example.com` / `123456`. Tài khoản đăng k�
 | Đường dẫn | Trang | Chức năng |
 | --- | --- | --- |
 | `/login` | Đăng nhập | Admin -> chuyển tới `/admin/products`, user -> về `/` |
+| `/forgot-password` | Quên mật khẩu | Nhập email, thông báo đã nhận yêu cầu, gửi lại sau 60 giây |
+| `/reset-password#token=...` | Đặt lại mật khẩu | Kiểm tra link, nhập/xác nhận mật khẩu mới; có màn hình link hết hạn và thành công |
 | `/register` | Đăng ký | Đăng ký xong chuyển sang `/login` |
 | `/` | Danh sách sản phẩm | Search, filter theo category (radio), sort theo tên/giá, phân trang kiểu "Xem thêm". Filter lưu trên URL |
 | `/products/:id` | Chi tiết sản phẩm | Thêm vào giỏ, yêu thích, bình luận + đánh giá sao (mỗi user 1 lần), mô tả dạng HTML |
 | `/cart` 🔒 | Giỏ hàng | Đổi số lượng, xóa sản phẩm, tổng tiền |
 | `/checkout` 🔒 | Thanh toán | Form thông tin giao hàng + thông tin thẻ (giả lập, chỉ cần qua validate) |
 | `/checkout/success/:code` 🔒 | Đặt hàng thành công | Hiển thị mã đơn (8 ký tự, vd `K7Q2M9XA`), tổng tiền, địa chỉ giao |
-| `/profile` 🔒 | Tài khoản của tôi | 4 tab: thông tin + avatar, đổi mật khẩu, lịch sử đơn hàng, sản phẩm yêu thích (`?tab=orders`...) |
+| `/profile` 🔒 | Tài khoản của tôi | 5 tab: thông tin + avatar, sổ địa chỉ, đổi mật khẩu, lịch sử đơn hàng, sản phẩm yêu thích (`?tab=orders`...) |
+| `/profile?tab=addresses` 🔒 | Sổ địa chỉ | Thêm/sửa/xóa, đặt mặc định; chọn tỉnh/thành và phường/xã theo địa danh mới |
 | `/admin/products` | Admin - Quản lý sản phẩm | Search, filter, sort, pagination, xóa sản phẩm |
 | `/admin/products/create` | Admin - Thêm sản phẩm | Form tạo sản phẩm, upload ảnh, mô tả bằng Quill editor |
 | `/admin/products/:id/update` | Admin - Cập nhật sản phẩm | Form sửa sản phẩm, đổi ảnh (không chọn thì giữ ảnh cũ), mô tả bằng Quill editor |
 | `/admin/chat` | Admin - Chat với khách hàng | Danh sách cuộc trò chuyện + trả lời khách realtime (socket.io) |
 
 User đã đăng nhập có nút chat nổi ở góc phải (`components/ChatBox`) để nhắn với shop. Hướng dẫn setup chat và email đơn hàng nằm ở `docs/` của project backend: `chat-socket-io.md`, `order-email-nodemailer.md`.
+
+Hướng dẫn Sổ địa chỉ nằm ở `../e-commerce-api/docs/address-book.md`. Profile có thêm
+tab Sổ địa chỉ (`?tab=addresses`). Checkout tự chọn địa chỉ mặc định, cho đổi sang
+địa chỉ đã lưu khác hoặc nhập địa chỉ mới; hai dropdown tỉnh/thành và phường/xã
+dùng Province Open API v2 qua backend. Chạy lại migration SQL của backend để thêm bảng `addresses`.
 
 🔒 = cần đăng nhập. Các route này được bọc trong `layouts/PrivateLayout` (chưa có token -> về `/login`).
 
@@ -86,6 +94,17 @@ Filter đổi -> `useEffect` gọi lại API từ trang 1. Nút "Xem thêm" gọ
 3. Mở lại trang: `App.jsx` thấy có `accessToken` -> gọi `GET /profile` để lấy lại thông tin user.
 4. Đăng xuất: gọi `POST /logout` rồi xóa token trong `localStorage`.
 
+### Quên mật khẩu qua email
+
+Từ `/login`, chọn **Quên mật khẩu?**. Link gửi qua email có hiệu lực 15 phút,
+chỉ dùng một lần. Sau reset thành công, đăng nhập lại bằng mật khẩu mới;
+access token, refresh token và kết nối chat cũ bị thu hồi.
+
+Backend dùng Nodemailer và `MAIL_*` hiện có. `CLIENT_URL` ở backend phải trỏ
+đúng địa chỉ frontend đang chạy. Khi deploy, cấu hình host frontend để mọi
+đường dẫn (bao gồm `/reset-password`) trả về `index.html` cho React Router.
+Chi tiết API, migration và cấu hình: [Hướng dẫn reset mật khẩu](../e-commerce-api/docs/password-reset.md).
+
 ## Upload ảnh sản phẩm (FormData)
 
 Form tạo / sửa sản phẩm dùng antd `Upload` với `beforeUpload={() => false}` để chỉ giữ file lại, không tự upload. Khi submit, gom dữ liệu vào `FormData` rồi gửi bằng axios:
@@ -120,6 +139,8 @@ src/
 │   └── PrivateLayout/     # Bọc các trang cần đăng nhập (chưa có token -> /login)
 ├── pages/
 │   ├── Login/
+│   ├── ForgotPassword/
+│   ├── ResetPassword/
 │   ├── Register/
 │   ├── ProductList/
 │   ├── ProductDetail/

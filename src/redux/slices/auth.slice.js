@@ -8,6 +8,8 @@ import {
   updateMyProfileThunk,
   changePasswordThunk,
   updateAvatarThunk,
+  forgotPasswordThunk,
+  resetPasswordThunk,
 } from '../thunks/auth.thunk'
 
 const initialState = {
@@ -37,6 +39,8 @@ const initialState = {
     loading: false,
     error: null,
   },
+  forgotPasswordData: { loading: false, error: null },
+  resetPasswordData: { loading: false, error: null },
 }
 
 const authSlice = createSlice({
@@ -44,6 +48,25 @@ const authSlice = createSlice({
   initialState: initialState,
   reducers: {},
   extraReducers: (builder) => {
+    builder.addCase(forgotPasswordThunk.pending, (state) => {
+      state.forgotPasswordData = { loading: true, error: null }
+    })
+    builder.addCase(forgotPasswordThunk.fulfilled, (state) => {
+      state.forgotPasswordData.loading = false
+    })
+    builder.addCase(forgotPasswordThunk.rejected, (state, action) => {
+      state.forgotPasswordData = { loading: false, error: action.payload }
+    })
+    builder.addCase(resetPasswordThunk.pending, (state) => {
+      state.resetPasswordData = { loading: true, error: null }
+    })
+    builder.addCase(resetPasswordThunk.fulfilled, (state) => {
+      state.resetPasswordData.loading = false
+      state.userInfo.data = null
+    })
+    builder.addCase(resetPasswordThunk.rejected, (state, action) => {
+      state.resetPasswordData = { loading: false, error: action.payload?.message }
+    })
     // Login
     builder.addCase(loginThunk.pending, (state) => {
       state.loginData.loading = true

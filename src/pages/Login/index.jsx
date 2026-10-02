@@ -60,6 +60,9 @@ function Login() {
         </Form>
 
         <S.BottomText>
+          <Link to={ROUTES.USER.FORGOT_PASSWORD}>Quên mật khẩu?</Link>
+        </S.BottomText>
+        <S.BottomText>
           Chưa có tài khoản? <Link to={ROUTES.USER.REGISTER}>Đăng ký ngay</Link>
         </S.BottomText>
       </S.FormCard>

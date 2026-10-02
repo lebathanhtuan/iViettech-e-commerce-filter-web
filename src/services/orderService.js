@@ -2,7 +2,7 @@ import api from './api'
 
 /**
  * Đặt hàng từ giỏ hàng hiện tại (backend tự lấy sản phẩm trong giỏ và xóa giỏ sau khi đặt)
- * API: POST /orders - data: { fullName, phone, address }
+ * API: POST /orders - data: { addressId } hoặc { fullName, phone, provinceCode, wardCode, addressLine }
  * Kết quả: { id, code, totalPrice } - code là mã đơn hàng 8 ký tự, vd: "K7Q2M9XA"
  */
 export const createOrder = async (data) => {

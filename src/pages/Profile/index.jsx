@@ -5,10 +5,12 @@ import ProfileInfo from './components/ProfileInfo'
 import ChangePassword from './components/ChangePassword'
 import OrderHistory from './components/OrderHistory'
 import FavoriteList from './components/FavoriteList'
+import AddressBook from './components/AddressBook'
 import * as S from './styled'
 
 const tabItems = [
   { key: 'info', label: 'Thông tin cá nhân', children: <ProfileInfo /> },
+  { key: 'addresses', label: 'Sổ địa chỉ', children: <AddressBook /> },
   { key: 'password', label: 'Đổi mật khẩu', children: <ChangePassword /> },
   { key: 'orders', label: 'Lịch sử đơn hàng', children: <OrderHistory /> },
   { key: 'favorites', label: 'Sản phẩm yêu thích', children: <FavoriteList /> },
