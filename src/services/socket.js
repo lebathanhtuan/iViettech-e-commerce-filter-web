@@ -12,6 +12,8 @@ export const connectSocket = () => {
   }
 
   socket = io(import.meta.env.VITE_API_URL, {
+    // Vercel chỉ hỗ trợ WebSocket, không hỗ trợ HTTP long-polling của socket.io
+    transports: ['websocket'],
     // Truyền hàm thay vì object: mỗi lần kết nối (hoặc kết nối lại) đều lấy access token mới nhất
     auth: (callback) => callback({ token: localStorage.getItem('accessToken') }),
   })
